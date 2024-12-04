@@ -3,9 +3,9 @@
 ## Hi there 👋
 
 <p align="left">
-  <a href=''>
+<!--   <a href=''>
     <img src="https://img.shields.io/badge/notion-#000000?style=plastic&logo=notion&logoColor=white"/>
-  </a>
+  </a> -->
 
   <a>
     <img src="https://img.shields.io/badge/Gmail-D14836?style=for-the-badge&logo=gmail&logoColor=white"/>
@@ -13,8 +13,6 @@
 
 
 </p>
-
-![Gmail](https://img.shields.io/badge/Gmail-D14836?style=for-the-badge&logo=gmail&logoColor=white) limhyeon0809@gmail.com
 <!--
 **leemyou/leemyou** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
 
