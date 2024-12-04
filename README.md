@@ -1,4 +1,4 @@
-![header](https://capsule-render.vercel.app/api?type=venom&color=auto&height=200&section=header&text=EMYO's%GitHub%20render&fontSize=90&animation=fadeIn)
+![header](https://capsule-render.vercel.app/api?type=venom&color=auto&height=200&section=header&text=EMYO's%GitHub%20render&fontSize=90)
 
 ## Hi there 👋
 
