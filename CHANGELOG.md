@@ -1,3 +1,7 @@
+## v1.2.7 (2025-06-15)
+
+* [TEST-05] 테스트중 (#14) (2b9267e) @Emyo
+* docs: update CHANGELOG.md and version.ts for v1.2.6 (d84ff93) @GitHub Action
 ## v1.2.6 (2025-06-15)
 
 * [CICD] 깃헙 토큰 추가 (479e511) @leemyou
