@@ -48,26 +48,19 @@ jobs:
           echo "LATEST_TAG=${GITHUB_REF##*/}" >> $GITHUB_ENV
           echo "FIRST_TAG=$PREV_TAG" >> $GITHUB_ENV
 
-      - name: 📄 Generate changelog
-        uses: janheinrichmerker/action-github-changelog-generator@v2.4
+      - name: ✏️ Generate release changelog
+        uses: TriPSs/conventional-changelog-action@v5
         with:
           token: ${{ secrets.GH_PAT }}
-          futureRelease: ${{ env.LATEST_TAG }}
+          futureRelease: ${{ github.event.release.tag_name || env.LATEST_TAG }}
           output: CHANGELOG.md
+          base: CHANGELOG.md
           sinceTag: ${{ env.FIRST_TAG }}
           excludeTagsRegex: "^v[0-9]$"
-          headerLabel: ""
-          simpleList: true
-          usernamesAsGithubLogins: true
-          compareLink: false
-          issues: true
-          issuesWoLabels: true
           pullRequests: true
-          prWoLabels: true
-          configureSections: |
-            {
-              "": ["*"]
-            }
+          compareLink: false
+          enhancementLabel: "emyo"
+          addSections: true
 
       - name: 📝 Commit updated version.ts & CHANGELOG.md
         run: |
