@@ -68,4 +68,5 @@ jobs:
           commit_message: "docs: update CHANGELOG.md and version.ts for ${{ steps.get_latest_tag.outputs.LATEST_TAG }}"
           user_email: "action@github.com"
           user_name: "GitHub Action"
+          repository_path: "."
           file_pattern: "CHANGELOG.md version.ts"
