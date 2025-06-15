@@ -36,16 +36,22 @@ jobs:
 
       - name: Update CHANGELOG.md
         run: |
+          # 새로운 CHANGELOG 내용 생성
           echo "## ${{ steps.get_latest_tag.outputs.LATEST_TAG }} ($(date +'%Y-%m-%d'))" > new_changelog.txt
           echo "" >> new_changelog.txt
           cat temp_changelog.txt >> new_changelog.txt
           echo "" >> new_changelog.txt
 
+          # 기존 CHANGELOG.md가 있다면 추가
           if [ -f CHANGELOG.md ]; then
             cat CHANGELOG.md >> new_changelog.txt
           fi
 
+          # 임시 파일을 실제 파일로 이동
           mv new_changelog.txt CHANGELOG.md
+
+          # 임시 파일 삭제
+          rm -f temp_changelog.txt
 
       - name: Update version.ts
         run: |
@@ -67,6 +73,13 @@ jobs:
 
       - name: Commit and push changes
         run: |
+          # 변경사항 확인
+          git status
+          # 파일 추가
           git add CHANGELOG.md version.ts
+          # 변경사항 확인
+          git status
+          # 커밋
           git commit -m "docs: update CHANGELOG.md and version.ts for ${{ steps.get_latest_tag.outputs.LATEST_TAG }}"
+          # 푸시
           git push origin main
