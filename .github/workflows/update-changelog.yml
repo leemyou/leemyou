@@ -1,0 +1,56 @@
+name: Update CHANGELOG
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  update-changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Get latest tag
+        id: get_latest_tag
+        run: echo "LATEST_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Get previous tag
+        id: get_previous_tag
+        run: |
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 ${{ steps.get_latest_tag.outputs.LATEST_TAG }}^ 2>/dev/null || echo "")
+          echo "PREVIOUS_TAG=$PREVIOUS_TAG" >> $GITHUB_OUTPUT
+
+      - name: Generate changelog
+        id: generate_changelog
+        run: |
+          if [ -z "${{ steps.get_previous_tag.outputs.PREVIOUS_TAG }}" ]; then
+            # 첫 번째 태그인 경우
+            git log --pretty=format:"* %s (%h) @%an" ${{ steps.get_latest_tag.outputs.LATEST_TAG }} >> temp_changelog.txt
+          else
+            # 이전 태그가 있는 경우
+            git log --pretty=format:"* %s (%h) @%an" ${{ steps.get_previous_tag.outputs.PREVIOUS_TAG }}..${{ steps.get_latest_tag.outputs.LATEST_TAG }} >> temp_changelog.txt
+          fi
+
+      - name: Update CHANGELOG.md
+        run: |
+          echo "## ${{ steps.get_latest_tag.outputs.LATEST_TAG }} ($(date +'%Y-%m-%d'))" > new_changelog.txt
+          echo "" >> new_changelog.txt
+          cat temp_changelog.txt >> new_changelog.txt
+          echo "" >> new_changelog.txt
+
+          if [ -f CHANGELOG.md ]; then
+            cat CHANGELOG.md >> new_changelog.txt
+          fi
+
+          mv new_changelog.txt CHANGELOG.md
+
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add CHANGELOG.md
+          git commit -m "docs: update CHANGELOG.md for ${{ steps.get_latest_tag.outputs.LATEST_TAG }}"
+          git push
