@@ -59,17 +59,17 @@ jobs:
             pr_link=""
             if [[ $commit_msg =~ \[([A-Z]+-[0-9]+)\] ]]; then
               pr_number=${BASH_REMATCH[1]}
-              pr_link="[${pr_number}](https://github.com/${{ github.repository }}/pull/${pr_number#*-}) "
+              pr_link="([${pr_number}](https://github.com/${{ github.repository }}/pull/${pr_number#*-}))"
             elif [[ $commit_msg =~ \(#([0-9]+)\) ]]; then
               pr_number=${BASH_REMATCH[1]}
-              pr_link="[#${pr_number}](https://github.com/${{ github.repository }}/pull/${pr_number}) "
+              pr_link="([#${pr_number}](https://github.com/${{ github.repository }}/pull/${pr_number}))"
             fi
             
             # PR 번호 제거
-            commit_msg=$(echo "$commit_msg" | sed -E 's/\[[A-Z]+-[0-9]+\] //' | sed -E 's/\(#[0-9]+\) //')
+            commit_msg=$(echo "$commit_msg" | sed -E 's/\[[A-Z]+-[0-9]+\] //' | sed -E 's/\(#[0-9]+\)//')
             
             # 커밋 해시 링크 생성
-            commit_link="[${commit_hash}](https://github.com/${{ github.repository }}/commit/${commit_hash})"
+            commit_link="([${commit_hash}](https://github.com/${{ github.repository }}/commit/${commit_hash}))"
             
             # 최종 형식으로 조합
             echo "* ${commit_msg} ${pr_link} ${commit_link} @${author}" >> new_changelog.txt
