@@ -5,6 +5,9 @@ on:
     tags:
       - "*"
 
+permissions:
+  contents: write
+
 jobs:
   update-changelog:
     runs-on: ubuntu-latest
@@ -43,33 +46,22 @@ jobs:
           PREV_TAG=$(git tag --sort=-creatordate | grep -v "${GITHUB_REF##*/}" | head -n 1)
           echo "tag=$PREV_TAG" >> $GITHUB_OUTPUT
 
-      - name: 📄 Generate and prepend changelog
-        run: |
-          CURRENT_TAG=${GITHUB_REF##*/}
-          PREVIOUS_TAG=${{ steps.previous_tag.outputs.tag }}
+      - name: Generate changelog
+        uses: janheinrichmerker/action-github-changelog-generator@v2.4
+        with:
+          token: ${{ secrets.GH_PAT }}
+          futureRelease: ${{ github.event.release.tag_name || env.LATEST_TAG }}
+          output: CHANGELOG.md
+          sinceTag: ${{ env.FIRST_TAG }}
+          excludeTagsRegex: "^v[0-9]$"
 
-          echo "Generating changelog from $PREVIOUS_TAG to $CURRENT_TAG"
-
-          echo "## $CURRENT_TAG - $(date '+%Y-%m-%d')" > new_changelog.md
-          echo "" >> new_changelog.md
-          git log "$PREVIOUS_TAG..$CURRENT_TAG" --pretty=format:"- %s (%an)" >> new_changelog.md
-          echo "" >> new_changelog.md
-
-          # 기존 CHANGELOG.md 없으면 빈 파일 생성
-          [ -f CHANGELOG.md ] || touch CHANGELOG.md
-          cat CHANGELOG.md >> new_changelog.md
-          mv new_changelog.md CHANGELOG.md
-
-      - name: ✅ Commit updated CHANGELOG.md
-        env:
-          GH_PAT: ${{ secrets.GH_PAT }}
-        run: |
-          git config --global user.name "leemyou"
-          git config --global user.email "limhyeon0809@gmail.com"
-
-          # push URL 강제로 설정
-          git remote set-url --push origin https://x-access-token:${GH_PAT}@github.com/${{ github.repository }}
-
-          git add CHANGELOG.md
-          git commit -m "docs(changelog): update for ${{ github.ref_name }}" || echo "No changes to commit"
-          git push origin HEAD
+      - name: Git Commit and Push
+        uses: somaz94/go-git-commit-action@v1
+        with:
+          repository: ${{ github.repository }}
+          branch: main
+          commit_message: "Update changelog"
+          user_email: "limhyeon0809@gmail.com"
+          user_name: "leemyou"
+          file_pattern: "CHANGELOG.md"
+          commit_author: "leemyou <limhyeon0809@gmail.com>"
