@@ -49,11 +49,12 @@ jobs:
           echo "FIRST_TAG=$PREV_TAG" >> $GITHUB_ENV
 
       - name: ✏️ Generate release changelog
-        uses: TriPSs/conventional-changelog-action@v5
+        uses: janheinrichmerker/action-github-changelog-generator@v2.4
         with:
           token: ${{ secrets.GH_PAT }}
           futureRelease: ${{ github.event.release.tag_name || env.LATEST_TAG }}
           output: CHANGELOG.md
+          base: CHANGELOG.md
           sinceTag: ${{ env.FIRST_TAG }}
           excludeTagsRegex: "^v[0-9]$"
           pullRequests: true
@@ -69,5 +70,5 @@ jobs:
           git add version.ts CHANGELOG.md
 
           VERSION=${GITHUB_REF##*/}
-          git commit -m "release ${VERSION}" --no-verify
+          git commit -m "Release version ${VERSION}" --no-verify
           git push origin HEAD:main
