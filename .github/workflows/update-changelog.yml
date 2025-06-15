@@ -8,10 +8,13 @@ on:
 jobs:
   update-changelog:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Get latest tag
         id: get_latest_tag
@@ -70,3 +73,4 @@ jobs:
           user_name: "GitHub Action"
           repository_path: "."
           file_pattern: "CHANGELOG.md version.ts"
+          github_token: ${{ secrets.GH_PAT }}
