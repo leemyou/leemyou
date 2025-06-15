@@ -1,3 +1,8 @@
+## v1.2.8 (2025-06-15)
+
+* [TEST] 테스트 코드 추가 (#16) [#16](https://github.com/leemyou/leemyou/pull/16)  [e06f411](https://github.com/leemyou/leemyou/commit/e06f411) @Emyo
+* [CICD] changelog 내용 변경  [754dc6f](https://github.com/leemyou/leemyou/commit/754dc6f) @leemyou
+
 ## v1.2.7 (2025-06-15)
 
 * [TEST-05] 테스트중 (#14) (2b9267e) @Emyo
