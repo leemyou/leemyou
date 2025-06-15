@@ -34,6 +34,13 @@ jobs:
             git log --pretty=format:"* %s (%h) @%an" ${{ steps.get_previous_tag.outputs.PREVIOUS_TAG }}..${{ steps.get_latest_tag.outputs.LATEST_TAG }} >> temp_changelog.txt
           fi
 
+      - name: Configure Git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          # main 브랜치로 전환
+          git checkout main
+
       - name: Update CHANGELOG.md
         run: |
           # 새로운 CHANGELOG 내용 생성
@@ -59,17 +66,6 @@ jobs:
           VERSION=${GITHUB_REF#refs/tags/v}
           # version.ts 파일 업데이트
           echo "const APP_VERSION = \"$VERSION\";" > version.ts
-
-      - name: Configure Git
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          # 현재 태그가 가리키는 커밋의 해시를 가져옴
-          COMMIT_HASH=$(git rev-parse HEAD)
-          # main 브랜치로 전환
-          git checkout main
-          # 변경사항을 main 브랜치에 적용
-          git checkout $COMMIT_HASH -- CHANGELOG.md version.ts
 
       - name: Commit and push changes
         run: |
