@@ -1,6 +1,10 @@
 # PLOT RELEASE NOTE
 
-## [v1.1.8](https://github.com/leemyou/leemyou/tree/v1.1.8) (2025-06-15)
+## [v1.1.10](https://github.com/leemyou/leemyou/tree/v1.1.10) (2025-06-15)
+
+[Full Changelog](https://github.com/leemyou/leemyou/compare/v1.1.9...v1.1.10)
+
+- 반영 테스트 1 [\#13](https://github.com/leemyou/leemyou/pull/13) ([leemyou](https://github.com/leemyou))
 
 
 
