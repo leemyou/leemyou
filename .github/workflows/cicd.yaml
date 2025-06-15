@@ -56,3 +56,4 @@ jobs:
           git-branch: main
           input-file: CHANGELOG.md
           skip-tag: true
+          skip-git-pull: true
