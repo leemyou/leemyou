@@ -1,5 +1,15 @@
 # Changelog
 
+## [v1.1.4](https://github.com/leemyou/leemyou/tree/v1.1.4) (2025-06-15)
+
+[Full Changelog](https://github.com/leemyou/leemyou/compare/v1.1.3...v1.1.4)
+
+**Merged pull requests:**
+
+- Test/change cicd [\#9](https://github.com/leemyou/leemyou/pull/9) ([leemyou](https://github.com/leemyou))
+- \[CICD-test\] Cicd 자동화 변경 [\#8](https://github.com/leemyou/leemyou/pull/8) ([leemyou](https://github.com/leemyou))
+- 1차 배포 [\#7](https://github.com/leemyou/leemyou/pull/7) ([leemyou](https://github.com/leemyou))
+
 ## [v1.1.3](https://github.com/leemyou/leemyou/tree/v1.1.3) (2025-06-15)
 
 [Full Changelog](https://github.com/leemyou/leemyou/compare/v1.1.2...v1.1.3)
