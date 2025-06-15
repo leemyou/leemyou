@@ -32,11 +32,14 @@ jobs:
           echo "✅ version.ts updated to $VERSION"
 
       - name: 📄 Generate CHANGELOG.md
-        uses: janheinrichmerker/action-github-changelog-generator@v2.4
+        uses: TriPSs/conventional-changelog-action@v5
         with:
           token: ${{ secrets.GH_PAT }}
           futureRelease: v${{ steps.tag.outputs.tag_version }}
           output: CHANGELOG.md
+          output-file: CHANGELOG.md
+          skip-version-file: true
+          skip-commit: true
 
       - name: ✅ Commit and Push changes
         run: |
