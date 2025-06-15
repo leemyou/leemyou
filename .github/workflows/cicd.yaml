@@ -1,4 +1,4 @@
-name: 📦 Update Changelog and version.ts on Tag
+name: 📦 Update Changelog on Tag
 
 on:
   push:
@@ -9,42 +9,73 @@ permissions:
   contents: write
 
 jobs:
-  update:
+  update-changelog:
     runs-on: ubuntu-latest
 
     steps:
       - name: 🔄 Checkout code
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0
+          fetch-depth: 0 # 태그 비교를 위해 전체 이력 필요
 
-      - name: 💡 Extract version from tag
-        id: tag
+      - name: 🔍 Check version.ts matches tag
+        id: version_check
         run: |
           TAG_NAME=${GITHUB_REF##*/}
-          VERSION=${TAG_NAME#v}
-          echo "tag_version=$VERSION" >> $GITHUB_OUTPUT
+          TAG_NAME=${TAG_NAME#v}  # 접두사 'v' 제거
+          echo "Current tag: $TAG_NAME"
 
-      - name: 📝 Update version.ts
+          VERSION_FILE="./version.ts"
+          if [ ! -f "$VERSION_FILE" ]; then
+            echo "❌ version.ts 파일이 존재하지 않습니다!"
+            exit 1
+          fi
+
+          FILE_VERSION=$(grep -oP 'const APP_VERSION\s*=\s*"\K[0-9]+\.[0-9]+\.[0-9]+' "$VERSION_FILE")
+
+          echo "version.ts: $FILE_VERSION"
+
+          if [ "$TAG_NAME" != "$FILE_VERSION" ]; then
+            echo "❌ 버전이 다릅니다! 버전을 업데이트합니다."
+            sed -i -E 's/(const APP_VERSION\s*=\s*")[0-9]+\.[0-9]+\.[0-9]+(")/\1'"$TAG_NAME"'\2/' "$VERSION_FILE"
+          fi
+
+      - name: 🧠 Get previous tag
+        id: previous_tag
         run: |
-          VERSION=${{ steps.tag.outputs.tag_version }}
-          sed -i -E 's/(const APP_VERSION\s*=\s*")[0-9]+\.[0-9]+\.[0-9]+(")/\1'"$VERSION"'\2/' version.ts
-          echo "✅ version.ts updated to $VERSION"
+          PREV_TAG=$(git tag --sort=-creatordate | grep -v "${GITHUB_REF##*/}" | head -n 1)
+          echo "PREV_TAG=$PREV_TAG" >> $GITHUB_ENV
+          echo "LATEST_TAG=${GITHUB_REF##*/}" >> $GITHUB_ENV
+          echo "FIRST_TAG=$PREV_TAG" >> $GITHUB_ENV
 
-      - name: 📄 Generate CHANGELOG.md
-        uses: TriPSs/conventional-changelog-action@v5
+      - name: 📄 Generate changelog
+        uses: janheinrichmerker/action-github-changelog-generator@v2.4
         with:
           token: ${{ secrets.GH_PAT }}
-          output-file: CHANGELOG.md
-          skip-version-file: true
-          skip-commit: true
-          skip-tag: true
+          futureRelease: ${{ env.LATEST_TAG }}
+          output: CHANGELOG.md
+          sinceTag: ${{ env.FIRST_TAG }}
+          excludeTagsRegex: "^v[0-9]$"
+          headerLabel: ""
+          simpleList: true
+          usernamesAsGithubLogins: true
+          compareLink: false
+          issues: true
+          issuesWoLabels: true
+          pullRequests: true
+          prWoLabels: true
+          configureSections: |
+            {
+              "": ["*"]
+            }
 
-      - name: ✅ Commit and Push changes
+      - name: 📝 Commit updated version.ts & CHANGELOG.md
         run: |
-          git config user.name "leemyou"
+          git config user.name "GitHub Actions"
           git config user.email "limhyeon0809@gmail.com"
 
           git add version.ts CHANGELOG.md
-          git commit -m "chore(release): v${{ steps.tag.outputs.tag_version }}"
-          git push origin HEAD:refs/heads/${{ github.event.repository.default_branch }}
+
+          VERSION=${GITHUB_REF##*/}
+          git commit -m "release ${VERSION}" --no-verify
+          git push origin HEAD:main
