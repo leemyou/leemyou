@@ -1,3 +1,8 @@
+## v1.2.9 (2025-06-15)
+
+* [TEST] 커밋 테스트를 위한 코드 추가  ([#18](https://github.com/leemyou/leemyou/pull/18)) ([0fd75b7](https://github.com/leemyou/leemyou/commit/0fd75b7)) @Emyo
+* [CICD] cicd 코드 수정  ([#17](https://github.com/leemyou/leemyou/pull/17)) ([c3cdcee](https://github.com/leemyou/leemyou/commit/c3cdcee)) @Emyo
+
 ## v1.2.8 (2025-06-15)
 
 * [TEST] 테스트 코드 추가 (#16) [#16](https://github.com/leemyou/leemyou/pull/16)  [e06f411](https://github.com/leemyou/leemyou/commit/e06f411) @Emyo
