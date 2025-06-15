@@ -67,7 +67,8 @@ jobs:
           git config --global user.name "leemyou"
           git config --global user.email "limhyeon0809@gmail.com"
 
-          git remote set-url origin https://x-access-token:${GH_PAT}@github.com/${{ github.repository }}
+          # push URL 강제로 설정
+          git remote set-url --push origin https://x-access-token:${GH_PAT}@github.com/${{ github.repository }}
 
           git add CHANGELOG.md
           git commit -m "docs(changelog): update for ${{ github.ref_name }}" || echo "No changes to commit"
