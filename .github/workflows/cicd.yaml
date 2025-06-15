@@ -54,7 +54,6 @@ jobs:
           token: ${{ secrets.GH_PAT }}
           futureRelease: ${{ github.event.release.tag_name || env.LATEST_TAG }}
           output: CHANGELOG.md
-          base: CHANGELOG.md
           sinceTag: ${{ env.FIRST_TAG }}
           excludeTagsRegex: "^v[0-9]$"
           pullRequests: true
