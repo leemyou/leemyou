@@ -34,13 +34,6 @@ jobs:
             git log --pretty=format:"* %s (%h) @%an" ${{ steps.get_previous_tag.outputs.PREVIOUS_TAG }}..${{ steps.get_latest_tag.outputs.LATEST_TAG }} >> temp_changelog.txt
           fi
 
-      - name: Configure Git
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          # main 브랜치로 전환
-          git checkout main
-
       - name: Update CHANGELOG.md
         run: |
           # 새로운 CHANGELOG 내용 생성
@@ -67,15 +60,12 @@ jobs:
           # version.ts 파일 업데이트
           echo "const APP_VERSION = \"$VERSION\";" > version.ts
 
-      - name: Commit and push changes
-        run: |
-          # 변경사항 확인
-          git status
-          # 파일 추가
-          git add CHANGELOG.md version.ts
-          # 변경사항 확인
-          git status
-          # 커밋
-          git commit -m "docs: update CHANGELOG.md and version.ts for ${{ steps.get_latest_tag.outputs.LATEST_TAG }}"
-          # 푸시
-          git push origin main
+      - name: Git Commit and Push
+        uses: somaz94/go-git-commit-action@v1
+        with:
+          repository: ${{ github.repository }}
+          branch: main
+          commit_message: "docs: update CHANGELOG.md and version.ts for ${{ steps.get_latest_tag.outputs.LATEST_TAG }}"
+          user_email: "action@github.com"
+          user_name: "GitHub Action"
+          file_pattern: "CHANGELOG.md,version.ts"
