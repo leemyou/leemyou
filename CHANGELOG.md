@@ -1,8 +1,6 @@
-# Changelog
+# PLOT RELEASE NOTE
 
-## [v1.1.7](https://github.com/leemyou/leemyou/tree/v1.1.7) (2025-06-15)
-
-[Full Changelog](https://github.com/leemyou/leemyou/compare/v1.1.6...v1.1.7)
+## [v1.1.8](https://github.com/leemyou/leemyou/tree/v1.1.8) (2025-06-15)
 
 
 
