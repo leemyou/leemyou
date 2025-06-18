@@ -1,4 +1,4 @@
-name: Update CHANGELOG
+name: Changelog Update Production
 
 on:
   push:
@@ -6,103 +6,116 @@ on:
       - "v*"
 
 jobs:
-  update-changelog:
+  check-version:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
-      - uses: actions/checkout@v3
+      - name: 🏗 Setup repo
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_PAT }}
 
-      - name: Get latest tag
-        id: get_latest_tag
-        run: echo "LATEST_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-
-      - name: Get previous tag
-        id: get_previous_tag
+      - name: 📌 Get latest & previous tags
+        id: tags
         run: |
-          PREVIOUS_TAG=$(git describe --tags --abbrev=0 ${{ steps.get_latest_tag.outputs.LATEST_TAG }}^ 2>/dev/null || echo "")
+          git fetch --tags
+          TAGS=($(git tag | sort -V -r))
+
+          # 최신 태그
+          LATEST_TAG=${TAGS[0]}
+          # 바로 이전 태그
+          PREVIOUS_TAG=${TAGS[1]}
+
+          echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_OUTPUT
           echo "PREVIOUS_TAG=$PREVIOUS_TAG" >> $GITHUB_OUTPUT
+          echo "🔍 커밋 범위: $PREVIOUS_TAG ~ $LATEST_TAG"
 
-      - name: Generate changelog
-        id: generate_changelog
+      - name: 🔧 Update version in app.config.js
         run: |
-          if [ -z "${{ steps.get_previous_tag.outputs.PREVIOUS_TAG }}" ]; then
-            # 첫 번째 태그인 경우
-            git log --pretty=format:"* %s (%h) @%an" ${{ steps.get_latest_tag.outputs.LATEST_TAG }} >> temp_changelog.txt
+          VERSION=${{ steps.tags.outputs.LATEST_TAG#v }}
+          sed -i "s/const appVersion = \".*\"/const appVersion = \"$VERSION\"/" app.config.js
+
+  update-eas:
+    runs-on: ubuntu-latest
+    needs: check-version
+
+    steps:
+      - name: 🏗 Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+          cache: npm
+
+      - name: 🏗 Setup EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: 📦 Install dependencies
+        run: npm install
+
+      - name: 🚀 Create update
+        run: eas update --environment production --branch production --auto --non-interactive
+
+  changelog:
+    runs-on: ubuntu-latest
+    needs: check-version
+    permissions:
+      contents: write
+
+    steps:
+      - name: 📝 Generate changelog log
+        run: |
+          if [ -z "${{ steps.tags.outputs.PREVIOUS_TAG }}" ]; then
+            git log --pretty=format:"* %s (%h) @%an" >> temp_changelog.txt
           else
-            # 이전 태그가 있는 경우
-            git log --pretty=format:"* %s (%h) @%an" ${{ steps.get_previous_tag.outputs.PREVIOUS_TAG }}..${{ steps.get_latest_tag.outputs.LATEST_TAG }} >> temp_changelog.txt
+            git log --pretty=format:"* %s (%h) @%an" "${{ steps.tags.outputs.PREVIOUS_TAG }}..${{ steps.tags.outputs.LATEST_TAG }}" >> temp_changelog.txt
           fi
 
-      - name: Update CHANGELOG.md
+      - name: 🛠 Build new CHANGELOG.md
         run: |
-          # 새로운 CHANGELOG 내용 생성
-          echo "## ${{ steps.get_latest_tag.outputs.LATEST_TAG }} ($(date +'%Y-%m-%d'))" > new_changelog.txt
+          echo "## ${{ steps.tags.outputs.LATEST_TAG }} ($(date +'%Y-%m-%d'))" > new_changelog.txt
           echo "" >> new_changelog.txt
 
-          # PR 링크와 커밋 해시를 포함한 커밋 메시지로 변환
           while IFS= read -r line; do
-            # 커밋 메시지, 해시, 작성자 추출
             commit_msg=$(echo "$line" | sed -E 's/\* (.*) \(.*\) @.*/\1/')
             commit_hash=$(echo "$line" | sed -E 's/.*\((.*)\) @.*/\1/')
             author=$(echo "$line" | sed -E 's/.*@(.*)/\1/')
-            
-            # Release version으로 시작하는 커밋은 건너뛰기
+
             if [[ $commit_msg == "Release version"* ]]; then
               continue
             fi
-            
-            # PR 번호 추출 및 링크 생성
+
             pr_link=""
-            if [[ $commit_msg =~ \[([A-Z]+-[0-9]+)\] ]]; then
-              pr_number=${BASH_REMATCH[1]}
-              pr_link="([${pr_number}](https://github.com/${{ github.repository }}/pull/${pr_number#*-}))"
-            elif [[ $commit_msg =~ \(#([0-9]+)\) ]]; then
+            if [[ $commit_msg =~ \(#([0-9]+)\) ]]; then
               pr_number=${BASH_REMATCH[1]}
               pr_link="([#${pr_number}](https://github.com/${{ github.repository }}/pull/${pr_number}))"
             fi
-            
-            # PR 번호 제거
-            commit_msg=$(echo "$commit_msg" | sed -E 's/\[[A-Z]+-[0-9]+\] //' | sed -E 's/\(#[0-9]+\)//')
-            
-            # 커밋 해시 링크 생성
+
+            commit_msg=$(echo "$commit_msg" | sed -E 's/\(#[0-9]+\)$//' | sed -E 's/\(#[0-9]+\) //')
             commit_link="([${commit_hash}](https://github.com/${{ github.repository }}/commit/${commit_hash}))"
-            
-            # 최종 형식으로 조합
+
             echo "* ${commit_msg} ${pr_link} ${commit_link} @${author}" >> new_changelog.txt
           done < temp_changelog.txt
 
           echo "" >> new_changelog.txt
 
-          # 기존 CHANGELOG.md가 있다면 추가
           if [ -f CHANGELOG.md ]; then
             cat CHANGELOG.md >> new_changelog.txt
           fi
 
-          # 임시 파일을 실제 파일로 이동
           mv new_changelog.txt CHANGELOG.md
-
-          # 임시 파일 삭제
           rm -f temp_changelog.txt
 
-      - name: Update version.ts
-        run: |
-          # 태그에서 'v' 제거
-          VERSION=${GITHUB_REF#refs/tags/v}
-          # version.ts 파일 업데이트
-          echo "const APP_VERSION = \"$VERSION\";" > version.ts
-
-      - name: Git Commit and Push
+      - name: 🚀 Commit and push changelog
         uses: somaz94/go-git-commit-action@v1
         with:
           repository: ${{ github.repository }}
           branch: main
-          commit_message: "Release version ${{ steps.get_latest_tag.outputs.LATEST_TAG }}"
+          commit_message: "Release version ${{ steps.tags.outputs.LATEST_TAG }}"
           user_email: "action@github.com"
           user_name: "GitHub Action"
           repository_path: "."
-          file_pattern: "CHANGELOG.md version.ts"
+          file_pattern: "CHANGELOG.md app.config.js"
           github_token: ${{ secrets.GH_PAT }}
